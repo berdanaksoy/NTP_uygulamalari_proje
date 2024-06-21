@@ -1,5 +1,5 @@
 package application;
-
+//deneme
 import java.sql.Date;
 
 public class faturalar {
