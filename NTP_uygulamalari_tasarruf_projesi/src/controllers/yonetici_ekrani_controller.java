@@ -1,5 +1,6 @@
-package application;
+package controllers;
 
+import application.*;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.sql.Connection;
@@ -7,7 +8,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.format.TextStyle;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,12 +21,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Text;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import com.projeMySql.util.VeritabaniUtil;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -142,6 +139,7 @@ public class yonetici_ekrani_controller {
 	ObservableList<uye_kayitlari> selectedItems3;
 	ObservableList<uye_kayitlari> uyeler_gelen_onaylanmis=FXCollections.observableArrayList();
 	ObservableList<uye_kayitlari> uyeler_gelen_onaylanmamis=FXCollections.observableArrayList();
+	Integer count;
 
     @FXML
     void btn_fatura_onayla_click(ActionEvent event) {
@@ -221,7 +219,7 @@ public class yonetici_ekrani_controller {
     @FXML
     void btn_geri_don_click(ActionEvent event) {
     	try {
-    		sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_girisi.fxml", event);
+    		page_operations.page_switch("uye_girisi.fxml", event);
 		} catch (Exception e) {
             JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
 			System.out.println(e.getMessage());
@@ -236,7 +234,7 @@ public class yonetici_ekrani_controller {
     @FXML
     void link_sifre_degistir_click(ActionEvent event) {
     	try {
-    		sayfa_gecis sayfa_gecis=new sayfa_gecis("yonetici_islem.fxml", event);
+    		page_operations.page_switch("yonetici_islem.fxml", event);
 		} catch (Exception e) {
             JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
 			System.out.println(e.getMessage());
@@ -308,15 +306,14 @@ public class yonetici_ekrani_controller {
 
     @FXML
     void initialize() {
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat,btn_geri_don);
+    	page_operations.upload_images_2button(btn_kapat, btn_geri_don);
     	
     	yonetici_kayitlar=yonetici_giris_controller.yonetici_kayitlar.get(0);
     	
     	fatura_getir();
     	
-    	uye_getir("onaylanmamis");
-    	
     	uye_getir("onaylanmis");
+    	uye_getir("onaylanmamis");
     	
     	Tooltip tip=new Tooltip();
     	tip.setText("Kimlik fotoğraflarını yakınlaştırıp uzaklaştırmak için her iki taraftaki çubukları kullanabilirsiniz. "
@@ -364,21 +361,21 @@ public class yonetici_ekrani_controller {
     void fatura_getir() {
     	switch (yonetici_kayitlar.getFatura_tipleri_id()) {
 		case 1: {
-			sql="select * from faturalar where fatura_tipleri_id=1 and iller_id="
-					+ "(select id from iller where elektrik_sirket_id=(select id from yoneticiler where id=?)) and onay='onaylanmamis'";
-			sql2="select tc from uyeler where id=(select uyeler_id from faturalar where uyeler_id=? and tarih=? and fatura_tipleri_id=?)";
+			sql="select * from faturalar where fatura_tipleri_id=1 and onay='onaylanmamis' and iller_id IN "
+					+ "(select id from iller where elektrik_sirket_id=(select id from yoneticiler where id=?))";
+			sql2="select tc from uyeler where id=?";
 			break;
 		}
 		case 2: {
-			sql="select * from faturalar where fatura_tipleri_id=2 and iller_id="
-					+ "(select id from iller where su_sirket_id=(select id from yoneticiler where id=?)) and onay='onaylanmamis'";
-			sql2="select tc from uyeler where id=(select uyeler_id from faturalar where uyeler_id=? and tarih=? and fatura_tipleri_id=?)";
+			sql="select * from faturalar where fatura_tipleri_id=2 and onay='onaylanmamis' and iller_id IN "
+					+ "(select id from iller where su_sirket_id=(select id from yoneticiler where id=?))";
+			sql2="select tc from uyeler where id=?";
 			break;
 		}
 		case 3: {
-			sql="select * from faturalar where fatura_tipleri_id=3 and iller_id="
-					+ "(select id from iller where dogalgaz_sirket_id=(select id from yoneticiler where id=?)) and onay='onaylanmamis'";
-			sql2="select tc from uyeler where id=(select uyeler_id from faturalar where uyeler_id=? and tarih=? and fatura_tipleri_id=?)";
+			sql="select * from faturalar where fatura_tipleri_id=3 and onay='onaylanmamis' and iller_id IN "
+					+ "(select id from iller where dogalgaz_sirket_id=(select id from yoneticiler where id=?))";
+			sql2="select tc from uyeler where id=?";
 			break;
 		}
 		default:
@@ -387,7 +384,7 @@ public class yonetici_ekrani_controller {
     	
     	tbl_fatura.setItems(fatura_gelen);
     	try {
-    		Integer count=0;
+    		count=0;
         	sorguIfadesi=baglanti.prepareStatement(sql);
         	sorguIfadesi.setInt(1, yonetici_kayitlar.getId());
         	ResultSet getirilen=sorguIfadesi.executeQuery();
@@ -400,8 +397,6 @@ public class yonetici_ekrani_controller {
         		sorguIfadesi=baglanti.prepareStatement(sql2);
             	for (Integer i=0; i<count; i++) {
             		sorguIfadesi.setInt(1, fatura_gelen.get(i).getUyeler_id());
-            		sorguIfadesi.setDate(2, fatura_gelen.get(i).getTarih());
-            		sorguIfadesi.setInt(3, fatura_gelen.get(i).getFatura_tipleri_id());
                 	ResultSet getirilen2=sorguIfadesi.executeQuery();
             		while (getirilen2.next()) {
                 		fatura_gelen.get(i).setFatura_sahibi_tc(getirilen2.getString("tc"));
@@ -416,52 +411,75 @@ public class yonetici_ekrani_controller {
             column_fatura_tarih.setCellValueFactory(new PropertyValueFactory<>("tarih"));
             column_fatura_id.setCellValueFactory(new PropertyValueFactory<>("fatura_sahibi_tc"));
         	
+            count=0;
 		} catch (Exception e) {
 			System.out.println(e.getMessage().toString());
             JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
 		}
     }
     
-    void uye_getir(String onay_durumu) {
-    	if (onay_durumu.equals("onaylanmis")) {
-			sql="select * from uyeler where onay='onaylanmis' and hatali_fatura_giris_sayisi>10";
-			try {
-	    		sorguIfadesi=baglanti.prepareStatement(sql);
-				ResultSet getirilen = sorguIfadesi.executeQuery();
-				while (getirilen.next()) {
-					uyeler_gelen_onaylanmis.add(new uye_kayitlari(getirilen.getInt("id"), getirilen.getString("tc"), getirilen.getString("ad_soyad"),
-							getirilen.getDate("uyelik_tarihi"), getirilen.getBlob("kimlik_foto1"), getirilen.getBlob("kimlik_foto2"),
-							getirilen.getString("sifre"), getirilen.getInt("iller_Id"), getirilen.getInt("ilceler_Id"), 
-							getirilen.getInt("hatali_fatura_giris_sayisi"), getirilen.getString("onay")));
-				}
-				tbl_uye_onayla.setItems(uyeler_gelen_onaylanmamis);
-		    	column_uye_onayla_tc.setCellValueFactory(new PropertyValueFactory<>("tc"));
-		        column_uye_onayla_ad_soyad.setCellValueFactory(new PropertyValueFactory<>("ad_soyad"));
-		        column_uye_onayla_uyelik_tarihi.setCellValueFactory(new PropertyValueFactory<>("uyelik_tarihi"));
-			} catch (Exception e) {
-				System.out.println(e.getMessage().toString());
-	            JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
-			}
+    void uye_getir(String onay) {
+    	switch (yonetici_kayitlar.getFatura_tipleri_id()) {
+		case 1: {
+			sql="select * from uyeler where onay='onaylanmis' and hatali_fatura_giris_sayisi>10 and iller_id IN(select id from iller where elektrik_sirket_id=?)";
+			sql2="select * from uyeler where onay='onaylanmamis' and iller_id IN (select id from iller where elektrik_sirket_id=?)";
+			break;
 		}
-    	else if (onay_durumu.equals("onaylanmamis")) {
-			sql="select * from uyeler where onay='onaylanmamis'";
-			try {
-	    		sorguIfadesi=baglanti.prepareStatement(sql);
-				ResultSet getirilen = sorguIfadesi.executeQuery();
-				while (getirilen.next()) {
-					uyeler_gelen_onaylanmamis.add(new uye_kayitlari(getirilen.getInt("id"), getirilen.getString("tc"), getirilen.getString("ad_soyad"),
-							getirilen.getDate("uyelik_tarihi"), getirilen.getBlob("kimlik_foto1"), getirilen.getBlob("kimlik_foto2"),
-							getirilen.getString("sifre"), getirilen.getInt("iller_Id"), getirilen.getInt("ilceler_Id"), 
-							getirilen.getInt("hatali_fatura_giris_sayisi"), getirilen.getString("onay")));
-				}
-				tbl_uye_sil.setItems(uyeler_gelen_onaylanmis);
-		    	column_uye_sil_tc.setCellValueFactory(new PropertyValueFactory<>("tc"));
-		        column_uye_sil_ad_soyad.setCellValueFactory(new PropertyValueFactory<>("ad_soyad"));
-		        column_uye_sil_hata_sayisi.setCellValueFactory(new PropertyValueFactory<>("hatalı_fatura_giris_sayisi"));
-			} catch (Exception e) {
-				System.out.println(e.getMessage().toString());
-	            JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
-			}
+		case 2: {
+			sql="select * from uyeler where onay='onaylanmis' and hatali_fatura_giris_sayisi>10 and iller_id IN (select id from iller where su_sirket_id=?)";
+			sql2="select * from uyeler where onay='onaylanmamis' and iller_id IN (select id from iller where su_sirket_id=?)";
+			break;
+		}
+		case 3: {
+			sql="select * from uyeler where onay='onaylanmis' and hatali_fatura_giris_sayisi>10 and iller_id IN (select id from iller where dogalgaz_sirket_id=?)";
+			sql2="select * from uyeler where onay='onaylanmamis' and iller_id IN (select id from iller where dogalgaz_sirket_id=?)";
+			break;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value: ");
+		}
+    	if (onay=="onaylanmis") {
+    		try {
+    	    	sorguIfadesi=baglanti.prepareStatement(sql);
+    	    	sorguIfadesi.setInt(1, yonetici_kayitlar.getId());
+    			ResultSet getirilen = sorguIfadesi.executeQuery();
+    			while (getirilen.next()) {
+    				uyeler_gelen_onaylanmis.add(new uye_kayitlari(getirilen.getInt("id"), getirilen.getString("tc"), getirilen.getString("ad_soyad"),
+    						getirilen.getDate("uyelik_tarihi"), getirilen.getBlob("kimlik_foto1"), getirilen.getBlob("kimlik_foto2"),
+    						getirilen.getString("sifre"), getirilen.getInt("iller_Id"), getirilen.getInt("ilceler_Id"), 
+    						getirilen.getInt("hatali_fatura_giris_sayisi"), getirilen.getString("onay")));
+    			}
+    			tbl_uye_onayla.setItems(uyeler_gelen_onaylanmamis);
+    		    column_uye_onayla_tc.setCellValueFactory(new PropertyValueFactory<>("tc"));
+    		    column_uye_onayla_ad_soyad.setCellValueFactory(new PropertyValueFactory<>("ad_soyad"));
+    		    column_uye_onayla_uyelik_tarihi.setCellValueFactory(new PropertyValueFactory<>("uyelik_tarihi"));
+    		} catch (Exception e) {
+    			System.out.println(e.getMessage().toString());
+    	        JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+    		}
+		}
+    	else if (onay=="onaylanmamis") {
+    		try {
+    	    	sorguIfadesi=baglanti.prepareStatement(sql2);
+    	    	sorguIfadesi.setInt(1, yonetici_kayitlar.getId());
+    			ResultSet getirilen = sorguIfadesi.executeQuery();
+    			while (getirilen.next()) {
+    				uyeler_gelen_onaylanmamis.add(new uye_kayitlari(getirilen.getInt("id"), getirilen.getString("tc"), getirilen.getString("ad_soyad"),
+    						getirilen.getDate("uyelik_tarihi"), getirilen.getBlob("kimlik_foto1"), getirilen.getBlob("kimlik_foto2"),
+    						getirilen.getString("sifre"), getirilen.getInt("iller_Id"), getirilen.getInt("ilceler_Id"), 
+    						getirilen.getInt("hatali_fatura_giris_sayisi"), getirilen.getString("onay")));
+    			}
+    			tbl_uye_sil.setItems(uyeler_gelen_onaylanmis);
+    		    column_uye_sil_tc.setCellValueFactory(new PropertyValueFactory<>("tc"));
+    		    column_uye_sil_ad_soyad.setCellValueFactory(new PropertyValueFactory<>("ad_soyad"));
+    		    column_uye_sil_hata_sayisi.setCellValueFactory(new PropertyValueFactory<>("hatalı_fatura_giris_sayisi"));
+    		} catch (Exception e) {
+    			System.out.println(e.getMessage().toString()+" 4");
+    	        JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+    		}
+		}
+    	else {
+	        JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
 		}
     }
 

@@ -1,6 +1,6 @@
-package application;
+package controllers;
 
-import java.awt.Window;
+import application.*;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -8,12 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ResourceBundle;
 import javafx.scene.control.PasswordField;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import com.projeMySql.util.VeritabaniUtil;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -93,7 +90,7 @@ public class uye_girisi_controller {
 			}
 			
 			if (uye_kayitlar.get(0).getOnay().equals("onaylanmis")) {
-				sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_ekrani.fxml", event);
+				page_operations.page_switch("uye_ekrani.fxml", event);
 			}
 			else {
 				JOptionPane.showMessageDialog(new JFrame(), "Üyeliğiniz henüz onaylanmamış", "Uyarı", JOptionPane.WARNING_MESSAGE);
@@ -125,7 +122,7 @@ public class uye_girisi_controller {
 
     @FXML
     void link_yonetici_click(ActionEvent event) throws IOException {
-    	sayfa_gecis sayfa_gecis=new sayfa_gecis("yonetici_giris.fxml", event);
+    	page_operations.page_switch("yonetici_giris.fxml", event);
     }
 
     @FXML
@@ -142,13 +139,11 @@ public class uye_girisi_controller {
    
     @FXML
     void initialize() {
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat);
-    	
-    	//!!!ALT SATIR 'user' TC'Sİ İLE GİRİŞ YAPILABİLMESİ İÇİN DEVRE DIŞI BIRAKILMIŞTIR.!!!
-    	//text_format.text_format_sayi(txt_tc);
+    	page_operations.upload_image_1button(btn_kapat);
+    	page_operations.text_format_sayi(txt_tc);
     }
 
     void uye_islem_sayfasina_git(ActionEvent event) throws IOException {
-    	sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_islem.fxml", event);
+    	page_operations.page_switch("uye_islem.fxml", event);
     }
 }

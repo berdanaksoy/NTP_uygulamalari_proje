@@ -1,28 +1,20 @@
-package application;
+package controllers;
 
+import application.*;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ResourceBundle;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.scene.control.PasswordField;
 import com.projeMySql.util.VeritabaniUtil;
 
@@ -66,7 +58,7 @@ public class yonetici_giris_controller {
     @FXML
     void btn_geri_don_click(ActionEvent event) {
     	try {
-    		sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_girisi.fxml", event);
+    		page_operations.page_switch("uye_girisi.fxml", event);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", 
@@ -88,7 +80,7 @@ public class yonetici_giris_controller {
     	        yonetici_kayitlar.add(new yonetici_kayitlar(getirilen.getInt("id"), getirilen.getString("ad"),
     	                getirilen.getString("sifre"), getirilen.getInt("fatura_tipleri_id")));
     	        
-				sayfa_gecis sayfa_gecis=new sayfa_gecis("yonetici_ekrani.fxml", event);
+    	        page_operations.page_switch("yonetici_ekrani.fxml", event);
     	    } else {
     	        JOptionPane.showMessageDialog(new JFrame(), "Yönetici adı veya şifre hatalı.", 
     	            "Uyarı", JOptionPane.WARNING_MESSAGE);
@@ -108,7 +100,7 @@ public class yonetici_giris_controller {
 
     @FXML
     void initialize() {
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat,btn_geri_don);
+    	page_operations.upload_images_2button(btn_kapat, btn_geri_don);
     }
 
 }

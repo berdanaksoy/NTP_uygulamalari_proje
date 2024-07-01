@@ -1,5 +1,6 @@
-package application;
+package controllers;
 
+import application.*;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.Date;
@@ -8,30 +9,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import com.projeMySql.util.VeritabaniUtil;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-
-
 
 public class uye_ekrani_controller {
 	public uye_ekrani_controller() {
@@ -145,7 +135,7 @@ public class uye_ekrani_controller {
     @FXML
     void btn_geri_don_click(ActionEvent event) {
     	try {
-    		sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_girisi.fxml", event);
+    		page_operations.page_switch("uye_girisi.fxml", event);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", 
@@ -173,11 +163,11 @@ public class uye_ekrani_controller {
 
     @FXML
     void initialize() {
-    	text_format.text_format_sayi(txt_dogalgaz_tutar);
-    	text_format.text_format_sayi(txt_elektrik_tutar);
-    	text_format.text_format_sayi(txt_su_tutar);
+    	page_operations.text_format_sayi(txt_dogalgaz_tutar);
+    	page_operations.text_format_sayi(txt_elektrik_tutar);
+    	page_operations.text_format_sayi(txt_su_tutar);
     	
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat,btn_geri_don);
+    	page_operations.upload_images_2button(btn_kapat, btn_geri_don);
 
         uye_kayitlari=uye_girisi_controller.uye_kayitlar.get(0);
     	
@@ -310,18 +300,39 @@ public class uye_ekrani_controller {
     }
     
     void tablo_getir(BarChart<String, Double> barchart, Integer fatura_tipi_id, Integer kac_ay) {
-    	double ortalama_tum=0.0;
+    	double ortalama_il=0.0;
+    	double ortalama_ilce=0.0;
     	double ortalama_kullanici=0.0;
     	if (kac_ay==3) {
-    		sql = "SELECT AVG(tutar) FROM faturalar WHERE fatura_tipleri_id=(select id from fatura_tipleri where id=?) "
-    				+ "and tarih>=DATE_SUB(CURDATE(),INTERVAL 3 MONTH) and onay='onaylanmis'";
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and iller_id=? and "
+    				+ "fatura_tipleri_id=(select id from fatura_tipleri where id=?) "
+    				+ "and tarih>=DATE_SUB(CURDATE(),INTERVAL 3 MONTH)";
     		try {
         		sorguIfadesi = baglanti.prepareStatement(sql);
-                sorguIfadesi.setInt(1, fatura_tipi_id);
+        		sorguIfadesi.setInt(1, uye_kayitlari.getIller_Id());
+                sorguIfadesi.setInt(2, fatura_tipi_id);
                 
                 getirilen=sorguIfadesi.executeQuery();
                 if (getirilen.next()) {
-    				ortalama_tum=getirilen.getDouble(1);
+    				ortalama_il=getirilen.getDouble(1);
+    			}
+    		} catch (Exception e) {
+    			System.out.println(e.getMessage().toString());
+                JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+    		}
+    		
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and ilceler_id=? and "
+    				+ "fatura_tipleri_id=(select id from fatura_tipleri where id=?) "
+    				+ "and tarih>=DATE_SUB(CURDATE(),INTERVAL 3 MONTH)";
+    		try {
+        		sorguIfadesi = baglanti.prepareStatement(sql);
+        		sorguIfadesi.setInt(1, uye_kayitlari.getIlceler_Id());
+                sorguIfadesi.setInt(2, fatura_tipi_id);
+                
+                getirilen=sorguIfadesi.executeQuery();
+                if (getirilen.next()) {
+    				ortalama_ilce=getirilen.getDouble(1);
     			}
     		} catch (Exception e) {
     			System.out.println(e.getMessage().toString());
@@ -329,8 +340,9 @@ public class uye_ekrani_controller {
                 return;
     		}
 
-    		sql = "SELECT AVG(tutar) FROM faturalar WHERE uyeler_id = (select id from uyeler where id=?) "
-            		+ "and fatura_tipleri_id=(select id from fatura_tipleri where id=?) and tarih>=DATE_SUB(CURDATE(),INTERVAL 3 MONTH) and onay='onaylanmis'";
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and "
+    				+ "tarih>=DATE_SUB(CURDATE(),INTERVAL 3 MONTH) and uyeler_id = (select id from uyeler where id=?) "
+            		+ "and fatura_tipleri_id=(select id from fatura_tipleri where id=?)";
     		try {
         		sorguIfadesi = baglanti.prepareStatement(sql);
                 sorguIfadesi.setInt(1, uye_kayitlari.getId());
@@ -347,15 +359,33 @@ public class uye_ekrani_controller {
     		}
 		}
     	else {
-    		sql = "SELECT AVG(tutar) FROM faturalar WHERE fatura_tipleri_id=(select id from fatura_tipleri where id=?) "
-    				+ "and tarih>=DATE_SUB(CURDATE(),INTERVAL 1 MONTH) and onay='onaylanmis'";
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and tarih>=DATE_SUB(CURDATE(),INTERVAL 1 MONTH) and iller_id=? and "
+    				+ "fatura_tipleri_id=(select id from fatura_tipleri where id=?)";
     		try {
         		sorguIfadesi = baglanti.prepareStatement(sql);
-                sorguIfadesi.setInt(1, fatura_tipi_id);
+                sorguIfadesi.setInt(1, uye_kayitlari.getIller_Id());
+                sorguIfadesi.setInt(2, fatura_tipi_id);
                 
                 getirilen=sorguIfadesi.executeQuery();
                 if (getirilen.next()) {
-    				ortalama_tum=getirilen.getDouble(1);
+    				ortalama_il=getirilen.getDouble(1);
+    			}
+    		} catch (Exception e) {
+    			System.out.println(e.getMessage().toString());
+                JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+                return;
+    		}
+    		
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and tarih>=DATE_SUB(CURDATE(),INTERVAL 1 MONTH) and ilceler_id=? and "
+    				+ "fatura_tipleri_id=(select id from fatura_tipleri where id=?)";
+    		try {
+        		sorguIfadesi = baglanti.prepareStatement(sql);
+                sorguIfadesi.setInt(1, uye_kayitlari.getIlceler_Id());
+                sorguIfadesi.setInt(2, fatura_tipi_id);
+                
+                getirilen=sorguIfadesi.executeQuery();
+                if (getirilen.next()) {
+    				ortalama_ilce=getirilen.getDouble(1);
     			}
     		} catch (Exception e) {
     			System.out.println(e.getMessage().toString());
@@ -363,8 +393,8 @@ public class uye_ekrani_controller {
                 return;
     		}
 
-    		sql = "SELECT AVG(tutar) FROM faturalar WHERE uyeler_id = (select id from uyeler where id=?) "
-            		+ "and fatura_tipleri_id=(select id from fatura_tipleri where id=?) and tarih>=DATE_SUB(CURDATE(),INTERVAL 1 MONTH) and onay='onaylanmis'";
+    		sql = "SELECT AVG(tutar) FROM faturalar WHERE onay='onaylanmis' and uyeler_id = (select id from uyeler where id=?) "
+            		+ "and fatura_tipleri_id=(select id from fatura_tipleri where id=?) and tarih>=DATE_SUB(CURDATE(),INTERVAL 1 MONTH)";
     		try {
         		sorguIfadesi = baglanti.prepareStatement(sql);
                 sorguIfadesi.setDouble(1, uye_kayitlari.getId());
@@ -380,14 +410,12 @@ public class uye_ekrani_controller {
                 return;
     		}
 		}
-
-        CategoryAxis xAxis=new CategoryAxis();
-        NumberAxis yAxis=new NumberAxis();
         
-        XYChart.Series data = new XYChart.Series();
+        XYChart.Series<String,Double> data = new XYChart.Series<>();
         
-        data.getData().add(new XYChart.Data("Ortalama",ortalama_tum));
-        data.getData().add(new XYChart.Data("Siz",ortalama_kullanici));
+        data.getData().add(new XYChart.Data<>("Ortalama",ortalama_il));
+        data.getData().add(new XYChart.Data<>("İlçe",ortalama_ilce));
+        data.getData().add(new XYChart.Data<>("Siz",ortalama_kullanici));
 
         barchart.getData().add(data);
     }

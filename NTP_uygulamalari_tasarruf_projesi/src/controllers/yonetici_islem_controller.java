@@ -1,33 +1,22 @@
-package application;
+package controllers;
 
+import application.*;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.time.LocalDate;
 import java.util.ResourceBundle;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import com.projeMySql.util.VeritabaniUtil;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import application.yonetici_giris_controller;
 
 public class yonetici_islem_controller {
 	
@@ -74,7 +63,7 @@ public class yonetici_islem_controller {
     @FXML
     void btn_geri_don_click(ActionEvent event) {
     	try {
-    		sayfa_gecis sayfa_gecis=new sayfa_gecis("yonetici_ekrani.fxml", event);
+    		page_operations.page_switch("yonetici_ekrani.fxml", event);
     		} catch (Exception e) {
 			System.out.println(e.getMessage());
             JOptionPane.showMessageDialog(new JFrame(), "Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
@@ -110,19 +99,19 @@ public class yonetici_islem_controller {
     	        		txt_yeni_sifre.getText().equals(txt_yeni_sifre2.getText())) {
     	            sql = "update yoneticiler set sifre=? where id=?";
     	            sorguIfadesi = baglanti.prepareStatement(sql);
-    	            sorguIfadesi.setString(1, txt_yeni_sifre.getText());
+    	            sorguIfadesi.setString(1, VeritabaniUtil.MD5Sifrele(txt_yeni_sifre.getText()));
     	            sorguIfadesi.setInt(2, giris_yapilan_id.getId());
 
     	            sorguIfadesi.executeUpdate();
 
-    	            sayfa_gecis sayfa_gecis=new sayfa_gecis("yonetici_ekrani.fxml", event);
+    	            page_operations.page_switch("yonetici_ekrani.fxml", event);
     	            JOptionPane.showMessageDialog(new JFrame(), "İşleminiz başarıyla tamamlanmıştır.", "Bilgilendirme",
     	                    JOptionPane.INFORMATION_MESSAGE);
     	        } else {
     	            JOptionPane.showMessageDialog(new JFrame(),
     	                    "Yönetici adı veya eski şifre yanlış girildi. Güvenliğiniz için çıkış yapılıyor.", "Uyarı",
     	                    JOptionPane.WARNING_MESSAGE);
-    	            sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_girisi.fxml", event);
+    	            page_operations.page_switch("uye_girisi.fxml", event);
     	        }
     	    }
     	} catch (Exception e) {
@@ -133,7 +122,7 @@ public class yonetici_islem_controller {
 
     @FXML
     void initialize() {
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat,btn_geri_don);
+    	page_operations.upload_images_2button(btn_kapat, btn_geri_don);
     	
     	giris_yapilan_id=yonetici_giris_controller.yonetici_kayitlar.get(0);
     }

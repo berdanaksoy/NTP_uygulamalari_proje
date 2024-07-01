@@ -1,6 +1,6 @@
-package application;
+package controllers;
 
-import java.awt.Event;
+import application.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,13 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
-
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import com.projeMySql.util.VeritabaniUtil;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -28,7 +25,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -241,11 +237,10 @@ public class uye_islem_controller {
     
     @FXML
     void initialize() throws IOException {
-    	upload_gorseller upload_gorseller=new upload_gorseller(btn_kapat,btn_geri_don);
+    	page_operations.upload_images_2button(btn_kapat, btn_geri_don);
     	
-    	text_format.text_format_yazi(txt_ad_soyad);
-    	text_format.text_format_sayi(txt_tc);
-    	txt_tc.setText(null);
+    	page_operations.text_format_sayi(txt_tc);
+    	page_operations.text_format_yazi(txt_ad_soyad);
     	
     	String islem=uye_girisi_controller.islem_ne;
     	islem_ne=islem;
@@ -294,7 +289,7 @@ public class uye_islem_controller {
     }
     
     void girise_don(ActionEvent event) throws IOException {
-    	sayfa_gecis sayfa_gecis=new sayfa_gecis("uye_girisi.fxml", event);
+    	page_operations.page_switch("uye_girisi.fxml", event);
     }
     
     boolean uye_var_mi() {
